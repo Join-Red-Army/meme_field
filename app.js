@@ -1,62 +1,29 @@
 let playingField = document.querySelector('.playing-field');
-let namesList = [
-  'abdul', 'pahom', 'peppa', 'pocik', 'ponasenkov', 'bob', 'valakas',
-  'nyan', 'zapili', 'spider', 'ozon', 'sidor', 'roger', 'cartman',
-  'povar', 'loh', 'beavis', 'creeper', 'chocolate', 'troll', 'nihuya'
-];
-
+let censorship = false;
 let clickedPair = [];
 
+addCardsOnField(createPairs([
+    'abdul', 'pahom', 'peppa', 'pocik', 'ponasenkov', 'bob', 'valakas',
+    'nyan', 'zapili', 'spider', 'ozon', 'sidor', 'roger', 'cartman',
+    'povar', 'loh', 'beavis', 'creeper', 'chocolate', 'troll', 'nihuya'
+  ]
+));
 
-btn.addEventListener('click', () => {
-  let music = document.createElement('audio');
-music.src = 'music/minecraft.mp3';
-music.autoplay = true;
-document.body.append(music);
-})
 
-// создать пары-карточки из списка имён, перемешать и добавить на игровое поле
-addCardsOnField(createPairs(namesList));
-
-// обработчики событий
 document.addEventListener('click', (ev) => {
-  if (ev.target.closest('.card-wrapper')) {
-    let currentCard = ev.target.closest('.card');
-
-    if (currentCard.classList.contains('card--inactive')) {
-      return;
-    }
-
-    currentCard.classList.add('card--clicked');
-    if (currentCard !== clickedPair[0]) {
-      clickedPair.push(currentCard);
-    }
-    
-
-    if (clickedPair.length === 2) {
-      if (clickedPair[0].dataset.name === clickedPair[1].dataset.name) {
-        // играть музыку
-        let audio = document.createElement('audio');
-        audio.src = `sound/${clickedPair[0].dataset.name}.mp3`;
-        audio.autoplay = true;
-        clickedPair[0].append(audio);
-        clickedPair[0].classList.add('card--inactive');
-        clickedPair[1].classList.add('card--inactive');
-        clickedPair = [];
-        return;
-      }
-    }
-    if (clickedPair.length > 2) {
-      clickedPair.forEach(card => card.classList.remove('card--clicked'));
-      clickedPair = [];
-    }
+  if (ev.target.closest('.card')) {
+    checkClickedPair(ev.target.closest('.card'));
   }
 })
 
+// btn.addEventListener('click', () => {
+//   let music = document.createElement('audio');
+// music.src = 'music/minecraft.mp3';
+// music.autoplay = true;
+// document.body.append(music);
+// })
 
-
-
-// функция создаёт карточку
+// создаёт одну html-карточку из переданного имени
 function createCard(name) {
   let cardWrapper = document.createElement('div');
   cardWrapper.innerHTML = 
@@ -73,16 +40,7 @@ function createCard(name) {
   return cardWrapper;
 }
 
-// функция для перемешивания карт: максимум не включается, минимум включается
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-// функция возвращает массив карточек-пар для игры
+// создаёт массив карточек-пар из списка имён
 function createPairs(namesList) {
   let cardsPairs = [];
   namesList.forEach(name => {
@@ -92,11 +50,46 @@ function createPairs(namesList) {
   return cardsPairs;
 }
 
-// функция перемешивает карточки и добавляет их на игровое поле
+// перемешивает карточки и добавляет их на игровое поле
 function addCardsOnField(cards) {
-  shuffle(cards).forEach(i => playingField.append(i));
+  for (let i = cards.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  cards.forEach(i => playingField.append(i));
 }
 
-function createSound(target) {
-  
+// создаёт звуковой эффект при найденном совпадении
+function createSound(card) {
+  let name = censorship ? 'default' : card.dataset.name; 
+  let audio = document.createElement('audio');
+  audio.src = `sound/${name}.mp3`;
+  audio.autoplay = true;
+  audio.remove();
+  return;
+}
+
+// проверить, есть ли пара в массиве
+function checkClickedPair(currentCard) {
+  // если в массиве первым уже есть именно этот html-элемент, то не добавлять его
+  if (currentCard === clickedPair[0]) {
+    return;
+  }
+
+  currentCard.classList.add('card--clicked');
+  clickedPair.push(currentCard);
+
+  // если в массиве совпали 2 карты
+  if (clickedPair.length === 2) {
+    if (clickedPair[0].dataset.name === clickedPair[1].dataset.name) {
+      clickedPair.forEach(card => card.classList.add('card--inactive'));
+      clickedPair = [];
+      createSound(currentCard);
+    }
+  // если кликнул 3 раза, но не было совпадения на предыдущем клике
+  } else if (clickedPair.length > 2) {
+    clickedPair.forEach(card => card.classList.remove('card--clicked'));
+    clickedPair = [];
+  }
+  return;
 }
