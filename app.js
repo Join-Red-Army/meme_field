@@ -1,20 +1,51 @@
 let playingField = document.querySelector('.playing-field');
 let censorship = false;
+let victoriesInRow = 0;
+let timerStarted = false;
+let startBtn = document.getElementById('start');
 let clickedPair = [];
 
-addCardsOnField(createPairs([
-    'abdul', 'pahom', 'peppa', 'pocik', 'ponasenkov', 'bob', 'valakas',
-    'nyan', 'zapili', 'spider', 'ozon', 'sidor', 'roger', 'cartman',
-    'povar', 'loh', 'beavis', 'creeper', 'chocolate', 'troll', 'nihuya'
-  ]
-));
+let names = [
+  'abdul', 'pahom', 'peppa', 'pocik', 'ponasenkov', 'bob', 'valakas',
+  'nyan', 'zapili', 'spider', 'ozon', 'sidor', 'roger', 'cartman',
+  'povar', 'loh', 'beavis', 'creeper', 'chocolate', 'troll', 'nihuya'
+];
+
+let pairs = createPairs(names);
+addCardsOnField(pairs);
 
 
 document.addEventListener('click', (ev) => {
   if (ev.target.closest('.card')) {
     checkClickedPair(ev.target.closest('.card'));
   }
-})
+  if (ev.target.closest('#start')) {
+    createNewGame();
+  }
+});
+
+
+function createNewGame() {
+  if (timerStarted) return;
+
+  clickedPair = [];
+  let cardsInGame = playingField.querySelectorAll('.card');
+  cardsInGame.forEach(card => card.classList.remove('card--clicked', 'card--inactive'));
+  addCardsOnField(pairs);
+  // временно показать карты и скрыть по таймеру
+  timerStarted = true;
+  setTimeout(() => cardsInGame.forEach(card => card.classList.add('card--clicked')), 10);
+  setTimeout(() => {
+    cardsInGame.forEach(card => card.classList.remove('card--clicked'));
+    timerStarted = false;
+  }, 3000);
+
+  // баг, если кликать во время подсказки. Заморозить на это время.
+
+
+
+}
+
 
 // btn.addEventListener('click', () => {
 //   let music = document.createElement('audio');
@@ -22,6 +53,16 @@ document.addEventListener('click', (ev) => {
 // music.autoplay = true;
 // document.body.append(music);
 // })
+
+// создаёт массив карточек-пар из списка имён
+function createPairs(namesList) {
+  let cardsPairs = [];
+  namesList.forEach(name => {
+    cardsPairs.push(createCard(name)); 
+    cardsPairs.push(createCard(name));
+  });
+  return cardsPairs;
+}
 
 // создаёт одну html-карточку из переданного имени
 function createCard(name) {
@@ -40,17 +81,7 @@ function createCard(name) {
   return cardWrapper;
 }
 
-// создаёт массив карточек-пар из списка имён
-function createPairs(namesList) {
-  let cardsPairs = [];
-  namesList.forEach(name => {
-    cardsPairs.push(createCard(name)); 
-    cardsPairs.push(createCard(name));
-  });
-  return cardsPairs;
-}
-
-// перемешивает карточки и добавляет их на игровое поле
+// перемешивает массив с карточками и добавляет их на игровое поле
 function addCardsOnField(cards) {
   for (let i = cards.length - 1; i > 0; i--) {
     let j = Math.floor(Math.random() * (i + 1));
@@ -69,9 +100,9 @@ function createSound(card) {
   return;
 }
 
-// проверить, есть ли пара в массиве
+// проверки текущей карты
 function checkClickedPair(currentCard) {
-  // если в массиве первым уже есть именно этот html-элемент, то не добавлять его
+  // если в массиве первым элементом уже есть этот html-элемент, то не добавлять его
   if (currentCard === clickedPair[0]) {
     return;
   }
