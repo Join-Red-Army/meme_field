@@ -29,6 +29,8 @@ body {
     justify-content: space-between;
     flex-wrap: wrap;
 
+    position: relative;
+
     margin: 50px auto 0;
     max-width: 900px;
     width: 100%;
@@ -59,7 +61,7 @@ body {
     transform: rotateY(180deg);
 }
 
-.card--inactive {
+.card--inactive { /* этот класс не используется*/
     display: none;
 }
 
