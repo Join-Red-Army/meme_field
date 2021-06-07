@@ -27,11 +27,14 @@ gameSettings.isFrozen = true;   // разморозится, когда поль
 
 // обработчики событий
 document.addEventListener('click', (ev) => {
+
   if (ev.target.closest('.card')) {
     if (gameSettings.isFrozen) return;
     checkClickedPair(ev.target.closest('.card'));
   }
+  
   if (ev.target.closest('#start')) {
+    scrollToElement(playingField);
     createNewGame();
   }
 });
@@ -124,27 +127,26 @@ function createSound(card) {
 }
 
 
-// проверки текущей карты
 function checkClickedPair(currentCard) {
-  // если в массиве уже есть этот html-элемент, то не добавлять его
-  if (currentCard === clickedPair[0]) {
-    return;
+
+  if (currentCard === clickedPair[0]) {       // если в массиве уже есть этот html-элемент,
+    return;                                   //  то не добавлять его
   }
+  
+  currentCard.classList.add('card--clicked'); // развернуть карту
+  clickedPair.push(currentCard);              // добавить в массив сравнения
 
-  currentCard.classList.add('card--clicked');
-  clickedPair.push(currentCard);
-
-  // если в массиве совпали 2 карты
-  if (clickedPair.length === 2) {
+  if (clickedPair.length === 2) {             // если в массиве совпали 2 карты
     if (clickedPair[0].dataset.name === clickedPair[1].dataset.name) {
       createSound(currentCard);
       gameSettings.isFrozen = true;
 
-      setTimeout(() => {           // удалить совпавшую пару карт
+      setTimeout(() => {                      // удалить совпавшую пару
         clickedPair.forEach(card => card.remove());
         clickedPair = [];
         gameSettings.isFrozen = false;
         if (gameSettings.remainingСardsOnField.length == 0) {
+          alert('!!!!!!!!!')
           // окончить игру
           // мб checkEndGame?
         }
@@ -158,4 +160,23 @@ function checkClickedPair(currentCard) {
   }
 
   return;
+}
+
+
+// Функция вычисления координат объекта относительно документа
+function getCoords(elem) {
+  let box = elem.getBoundingClientRect();
+  return {
+    top: box.top + pageYOffset,
+    left: box.left + pageXOffset
+  };
+}
+
+// функция прокрутки страницы к элементу
+function scrollToElement(el) {
+  window.scrollTo({
+    left: getCoords(el).left,
+    top: getCoords(el).top,
+    behavior: 'smooth'}
+  );
 }
