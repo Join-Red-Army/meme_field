@@ -44,14 +44,13 @@ function createNewGame() {
   // начать новую игру можно только раз в 5 секунд
   if (gameSettings.isTimerStarted) return;
   // обнуление игровых данных
-  gameSettings.remainingСardsOnField = playingField
-    .getElementsByClassName('card');
+  playingField.innerHTML = '';
+  addCardsOnField(createPairs(names));
   clickedPair = [];
   gameSettings.totalClicks = 0;
-
+  gameSettings.remainingСardsOnField = playingField.getElementsByClassName('card');
   let cardsInGame = playingField.querySelectorAll('.card');
-  cardsInGame.forEach(card => card.classList.remove('card--clicked', 'card--inactive'));
-  addCardsOnField(pairs);
+  
   
   // временно показать карты и скрыть по таймеру
   gameSettings.isTimerStarted = true;
