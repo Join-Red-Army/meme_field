@@ -76,7 +76,7 @@ body {
     
     transform-style: preserve-3d;
     transition: transform .2s linear;
-    /* transform: rotateY(180deg); */
+    transform: rotateY(180deg);
 }
 
 .card__img {

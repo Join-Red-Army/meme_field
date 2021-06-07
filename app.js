@@ -9,8 +9,8 @@ let gameSettings = {
   remainingСardsOnField: null, // сколько осталось неугаданных карт в игре
   totalClicks: 0,              // сколько кликов сделал пользователь за игру
   victoriesInRow: 0,           // победы подряд
-  gameStartTime: Date.now(),
-  gameEndTime: null, 
+  startTime: null,
+  endTime: null, 
 };
 
 
@@ -48,9 +48,9 @@ function createNewGame() {
   addCardsOnField(createPairs(names));
   clickedPair = [];
   gameSettings.totalClicks = 0;
+  gameSettings.startTime = Date.now();
   gameSettings.remainingСardsOnField = playingField.getElementsByClassName('card');
   let cardsInGame = playingField.querySelectorAll('.card');
-  
   
   // временно показать карты и скрыть по таймеру
   gameSettings.isTimerStarted = true;
@@ -116,20 +116,23 @@ function addCardsOnField(cards) {
 
 
 // создаёт звуковой эффект при найденном совпадении
-function createSound(card) {
-  let name = gameSettings.isCensored ? 'default' : card.dataset.name; 
+function playCardSound(card) {
+  let name = gameSettings.isCensored ? 'default' : card.dataset.name;
+  playSound(`sound/${name}.mp3`);
+}
+
+function playSound(src) {
   let audio = document.createElement('audio');
-  audio.src = `sound/${name}.mp3`;
+  audio.src = src;
   audio.autoplay = true;
   audio.remove();
-  return;
-}
+};
 
 
 function checkClickedPair(currentCard) {
 
   if (currentCard === clickedPair[0]) {       // если в массиве уже есть этот html-элемент,
-    return;                                   //  то не добавлять его
+    return;                                   // то не добавлять его
   }
   
   currentCard.classList.add('card--clicked'); // развернуть карту
@@ -137,7 +140,7 @@ function checkClickedPair(currentCard) {
 
   if (clickedPair.length === 2) {             // если в массиве совпали 2 карты
     if (clickedPair[0].dataset.name === clickedPair[1].dataset.name) {
-      createSound(currentCard);
+      playCardSound(currentCard);
       gameSettings.isFrozen = true;
 
       setTimeout(() => {                      // удалить совпавшую пару
@@ -145,9 +148,9 @@ function checkClickedPair(currentCard) {
         clickedPair = [];
         gameSettings.isFrozen = false;
         if (gameSettings.remainingСardsOnField.length == 0) {
+          // нужна функция проигрыша звуков
           alert('!!!!!!!!!')
-          // окончить игру
-          // мб checkEndGame?
+          playSound('sound/mission_complete.mp3');
         }
       }, 500);
     }
