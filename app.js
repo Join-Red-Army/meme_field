@@ -5,7 +5,8 @@ let clickedPair = [];
 let gameSettings = {
   isFrozen: false,             // true - клики по карточкам не работают
   isCensored: false,           // true - только цензурные звуки
-  isTimerStarted: false,       // true - заблокировать ряд действий, пока таймер работает
+  isSoundOff: false,           // true - выключить звуки
+  hintWorks: false,            // true - работает подсказка, клики д.б. не активны
   remainingСardsOnField: null, // сколько осталось неугаданных карт в игре
   totalClicks: 0,              // сколько кликов сделал пользователь за игру
   victoriesInRow: 0,           // победы подряд
@@ -13,36 +14,49 @@ let gameSettings = {
   endTime: null, 
 };
 
-
 let names = [                  // наименование изображений, из которых будут созданы карты
   'abdul', 'pahom', 'peppa', 'pocik', 'ponasenkov', 'bob', 'valakas',
   'nyan', 'zapili', 'spider', 'ozon', 'sidor', 'roger', 'cartman',
   'povar', 'loh', 'beavis', 'creeper', 'chocolate', 'troll', 'nihuya'
 ];
 
-let pairs = createPairs(names);
-addCardsOnField(pairs);
+addCardsOnField(createPairs(names));
 gameSettings.isFrozen = true;   // разморозится, когда пользователь сам запустит игру
 
 
-// обработчики событий
 document.addEventListener('click', (ev) => {
-
-  if (ev.target.closest('.card')) {
+  if (ev.target.closest('.card')) {    // клик по карте
     if (gameSettings.isFrozen) return;
     checkClickedPair(ev.target.closest('.card'));
   }
   
-  if (ev.target.closest('#start')) {
+  if (ev.target.closest('#start')) {   // старт игры
     scrollToElement(playingField);
     createNewGame();
+  }
+
+  if (ev.target.closest('#music')) {   //  
+    playSound('music/minecraft.mp3');
   }
 });
 
 
+document.addEventListener('change', (ev) => {
+  if (ev.target.closest('.settings__toggle')) {
+    let checkBox = ev.target;
+    gameSettings[checkBox.value] = checkBox.checked;
+    console.log(
+      checkBox.value,
+      gameSettings[checkBox.value],
+      checkBox.checked
+    )
+  }
+});
+
 function createNewGame() {
-  // начать новую игру можно только раз в 5 секунд
-  if (gameSettings.isTimerStarted) return;
+  // если подсказка открыта, нельзя начать ещё одну игру
+  if (gameSettings.hintWorks) return;
+  playSound('sound/game_start.mp3');
   // обнуление игровых данных
   playingField.innerHTML = '';
   addCardsOnField(createPairs(names));
@@ -50,10 +64,12 @@ function createNewGame() {
   gameSettings.totalClicks = 0;
   gameSettings.startTime = Date.now();
   gameSettings.remainingСardsOnField = playingField.getElementsByClassName('card');
+  showHint(5010);
+}
+
+function showHint(ms) {
+  gameSettings.hintWorks = true;    // отключить клики по картам
   let cardsInGame = playingField.querySelectorAll('.card');
-  
-  // временно показать карты и скрыть по таймеру
-  gameSettings.isTimerStarted = true;
   setTimeout(() => {
     cardsInGame.forEach(card => card.classList.add('card--clicked'));
     gameSettings.isFrozen = true;
@@ -61,12 +77,9 @@ function createNewGame() {
   setTimeout(() => {
     cardsInGame.forEach(card => card.classList.remove('card--clicked'));
     gameSettings.isFrozen = false;
-    gameSettings.isTimerStarted = false;
-  }, 5010);
-  // создать переменную Состояние, куда записывать цензуру, таймеры и что-то ещё.
-  // старт таймер поменять на заморозку
+    gameSettings.hintWorks = false;
+  }, ms);
 }
-
 
 // запуск фоновой музыки
 // btn.addEventListener('click', () => {
@@ -105,6 +118,7 @@ function createCard(name) {
   return cardWrapper;
 }
 
+
 // перемешивает массив с карточками и добавляет их на игровое поле
 function addCardsOnField(cards) {
   for (let i = cards.length - 1; i > 0; i--) {
@@ -122,6 +136,7 @@ function playCardSound(card) {
 }
 
 function playSound(src) {
+  if (gameSettings.isSoundOff) return;
   let audio = document.createElement('audio');
   audio.src = src;
   audio.autoplay = true;
