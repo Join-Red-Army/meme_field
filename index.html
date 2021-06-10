@@ -11,33 +11,44 @@
 
 <header class="header">
     <div class="container">
-        <div class="header__text">
+        <div class="header__inner">
             <div class="header__block">
-                <p class="header__paragraph">Мини-игра 'Русское поле эксперимемов'</p>
-                <p class="header__paragraph">Кликай на карточку и ищи на поле такую же</p>
+                <p class="header__text">Мини-игра 'Русское поле эксперимемов'</p>
+                <p class="header__text">Кликай на карточку и ищи на поле такую же</p>
             </div>
 
+            <!-- game settings -->
             <div class="header__block">
                 <div class="setting">
-                    <label class="header__paragraph" for="toggle-sound">Без звуков</label>
+                    <label class="header__text" for="toggle-sound">Без звуков</label>
                     <input class="settings__toggle" id="toggle-sound" type="checkbox" value="isSoundOff">
                 </div>
+
                 <div class="setting">
-                    <label class="header__paragraph" for="toggle-censure">С цензурой</label>
+                    <label class="header__text" for="toggle-censure">С цензурой</label>
                     <input class="settings__toggle" id="toggle-censure" type="checkbox" value="isCensored">
                 </div>
             </div>
 
-            <div class="header__stat">
-                <p class="header__paragraph">Время в игре:</p>
-                <p class="header__paragraph">Всего попыток:</p>
+            <!-- game stat -->
+            <div class="header__block">
+                <div class="header__stat">
+                    <div class="header__text">Время игры:</div>
+                    <div class="header__text" id="timer">00:00</div>
+                </div>
+        
+                <div class="header__stat">
+                    <div class="header__text">Количество ходов:</div>
+                    <div class="header__text" id="points">0</div>
+                </div>
             </div>
+
+            <!-- start btn -->
             <div class="header__block">
                 <button class="btn btn--start" id="start">ЖМИ!</button>
             </div>
 
         </div>
-
     </div>
 </header>
 

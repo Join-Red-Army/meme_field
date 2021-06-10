@@ -3,15 +3,16 @@ let startBtn = document.getElementById('start');
 let clickedPair = [];
 
 let gameSettings = {
+  isSoundOff: document.getElementById('toggle-sound').checked,   // true - только цензурные звуки
+  isCensored: document.getElementById('toggle-censure').checked, // true - выключить звуки
   isFrozen: false,             // true - клики по карточкам не работают
-  isCensored: false,           // true - только цензурные звуки
-  isSoundOff: false,           // true - выключить звуки
   hintWorks: false,            // true - работает подсказка, клики д.б. не активны
   remainingСardsOnField: null, // сколько осталось неугаданных карт в игре
-  totalClicks: 0,              // сколько кликов сделал пользователь за игру
+  points: 0,                   // сколько ходов сделал пользователь за игру
   victoriesInRow: 0,           // победы подряд
+  time: null,
   startTime: null,
-  endTime: null, 
+  endTime: null,
 };
 
 let names = [                  // наименование изображений, из которых будут созданы карты
@@ -53,22 +54,25 @@ document.addEventListener('change', (ev) => {
   }
 });
 
+
 function createNewGame() {
-  // если подсказка открыта, нельзя начать ещё одну игру
-  if (gameSettings.hintWorks) return;
-  playSound('sound/game_start.mp3');
-  // обнуление игровых данных
+  if (gameSettings.hintWorks) return;  // если подсказка открыта, нельзя начать ещё одну игру
+  
+  playSound('sound/game_start.mp3');   // обнуление игровых данных
   playingField.innerHTML = '';
   addCardsOnField(createPairs(names));
   clickedPair = [];
-  gameSettings.totalClicks = 0;
+  gameSettings.points = 0;
   gameSettings.startTime = Date.now();
   gameSettings.remainingСardsOnField = playingField.getElementsByClassName('card');
+  updatepoints()
+  timer.stop();
   showHint(5010);
 }
 
+
 function showHint(ms) {
-  gameSettings.hintWorks = true;    // отключить клики по картам
+  gameSettings.hintWorks = true;       // отключить клики по картам
   let cardsInGame = playingField.querySelectorAll('.card');
   setTimeout(() => {
     cardsInGame.forEach(card => card.classList.add('card--clicked'));
@@ -78,16 +82,9 @@ function showHint(ms) {
     cardsInGame.forEach(card => card.classList.remove('card--clicked'));
     gameSettings.isFrozen = false;
     gameSettings.hintWorks = false;
+    timer.start();
   }, ms);
 }
-
-// запуск фоновой музыки
-// btn.addEventListener('click', () => {
-//   let music = document.createElement('audio');
-// music.src = 'music/minecraft.mp3';
-// music.autoplay = true;
-// document.body.append(music);
-// })
 
 
 // создаёт массив карточек-пар из списка имён
@@ -144,6 +141,7 @@ function playSound(src) {
 };
 
 
+// обработка карточек
 function checkClickedPair(currentCard) {
 
   if (currentCard === clickedPair[0]) {       // если в массиве уже есть этот html-элемент,
@@ -157,23 +155,30 @@ function checkClickedPair(currentCard) {
     if (clickedPair[0].dataset.name === clickedPair[1].dataset.name) {
       playCardSound(currentCard);
       gameSettings.isFrozen = true;
+      gameSettings.points += 1;
+      updatepoints();
 
       setTimeout(() => {                      // удалить совпавшую пару
-        clickedPair.forEach(card => card.remove());
+        clickedPair.forEach(card => {
+          card.parentElement.style.cursor = 'default';
+          card.remove();
+        });
         clickedPair = [];
         gameSettings.isFrozen = false;
-        if (gameSettings.remainingСardsOnField.length == 0) {
-          // нужна функция проигрыша звуков
-          alert('!!!!!!!!!')
+        if (gameSettings.remainingСardsOnField.length == 0) {  // игра завершена
           playSound('sound/mission_complete.mp3');
+          timer.stop();
+          gameSettings.time = new Date(gameSettings.startTime - Date.now());
+          alert('!!!!!!!!!');
         }
       }, 500);
     }
 
-  // если кликнул 3 раза, но не было совпадения на предыдущем клике
-  } else if (clickedPair.length > 2) {
+  } else if (clickedPair.length > 2) { // если кликнул 3 раза, но не было совпадения на предыдущем клике
     clickedPair.forEach(card => card.classList.remove('card--clicked'));
     clickedPair = [];
+    gameSettings.points += 1;
+    updatepoints();
   }
 
   return;
@@ -189,6 +194,7 @@ function getCoords(elem) {
   };
 }
 
+
 // функция прокрутки страницы к элементу
 function scrollToElement(el) {
   window.scrollTo({
@@ -196,4 +202,44 @@ function scrollToElement(el) {
     top: getCoords(el).top,
     behavior: 'smooth'}
   );
+}
+
+
+// обновить счётчик ходов
+function updatepoints() {
+  document.getElementById('points').innerText = gameSettings.points;
+}
+
+
+// таймер
+let timer = {
+  htmlTimer: document.getElementById('timer'),
+
+  start() {
+    gameSettings.startTime = Date.now();
+    this.timerId = null;
+    return this.render();
+  },
+
+  stop() {
+    clearTimeout(this.timerId);
+    this.htmlTimer.innerText = '00:00';
+  },
+
+  render() {
+    let timeStamp = new Date(Date.now() - gameSettings.startTime);
+    let min = timeStamp.getMinutes();
+    let sec = timeStamp.getSeconds();
+
+    if (min < 10) {
+      min = `0${min}`;
+    }
+    if (sec < 10) {
+      sec = `0${sec}`;
+    }
+
+    this.htmlTimer.innerText = `${min}:${sec}`; 
+    this.timerId = setTimeout(() => this.render(), 1000);
+    return;
+  }
 }
